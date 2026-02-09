@@ -342,7 +342,6 @@ After generating the detailed summary:
    ```bash
    # Summary filename MUST reflect the video content
    # Format: summary_<video_id>_<descriptive_title>.md
-   # Example: summary_lR7GaZYdsAg_新世界秩序分析.md
    # Example: summary_RbEpEKnJvok_Claude_Skills七天实战营第一课.md
    # 
    # ❌ WRONG: summary_<video_id>.md (too generic, not descriptive)
@@ -384,7 +383,7 @@ youtube-summaries/
 
 Example:
 ├── summary_RbEpEKnJvok_Claude_Skills七天实战营第一课.md
-├── summary_lR7GaZYdsAg_新世界秩序分析.md
+├── summary_lR7GaZYdsAg_天天吃喝玩乐.md
 └── cookies.txt
 ```
 
