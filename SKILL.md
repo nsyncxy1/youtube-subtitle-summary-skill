@@ -15,6 +15,48 @@ description: >
 
 Download subtitles from YouTube videos and generate AI-powered summaries. If subtitles are unavailable, automatically transcribe audio using Groq Whisper API.
 
+## 🤖 For AI Assistants: Auto-Setup Required Files
+
+**BEFORE starting any workflow, check if required files exist. If not, ask the user and create them:**
+
+### Check and Create cookies.txt
+```bash
+# Check if cookies.txt exists
+if [ ! -f cookies.txt ]; then
+  echo "⚠️ cookies.txt not found. Please provide your YouTube cookies."
+fi
+```
+
+**If cookies.txt doesn't exist:**
+1. Ask user: "请提供你的 YouTube cookies（可以使用浏览器扩展 'Get cookies.txt LOCALLY' 导出）"
+2. When user provides cookies content, create the file:
+   ```bash
+   cat > cookies.txt << 'EOF'
+   [user's cookies content]
+   EOF
+   ```
+
+### Check and Create groq.txt
+```bash
+# Check if groq.txt exists
+if [ ! -f groq.txt ]; then
+  echo "⚠️ groq.txt not found. Please provide your Groq API key."
+fi
+```
+
+**If groq.txt doesn't exist:**
+1. Ask user: "请提供你的 Groq API key（可以从 https://console.groq.com/keys 获取）"
+2. When user provides the API key, create the file:
+   ```bash
+   echo "user-provided-api-key" > groq.txt
+   ```
+
+**Important:**
+- **Always check for these files at the start of the workflow**
+- **Create them immediately when user provides the content**
+- **Do not proceed without these files** (cookies.txt for most videos, groq.txt for transcription)
+- Files should be created in the working directory (e.g., `/root/.openclaw/workspace/youtube-summaries/`)
+
 ## Prerequisites
 
 ### Install Deno JavaScript Runtime
@@ -61,6 +103,12 @@ python3 scripts/download_subtitle.py <youtube_url> [--lang LANG] [--output OUTPU
 python3 scripts/download_subtitle.py "https://www.youtube.com/watch?v=VIDEO_ID" --lang zh --output ./subtitles
 ```
 
+**⚠️ Important: Cookies Auto-Detection**
+- The script will **automatically check for `cookies.txt`** in the working directory
+- If `cookies.txt` exists, it will be used automatically (no need to specify `--cookies`)
+- This applies to both subtitle download and video download steps
+- **Recommended**: Always keep `cookies.txt` in your working directory (e.g., `youtube-summaries/cookies.txt`)
+
 ### Step 2: If No Subtitles Available
 
 When subtitles are not available, follow these steps:
@@ -69,9 +117,13 @@ When subtitles are not available, follow these steps:
 
 Download the **lowest resolution** video to minimize file size.
 
-**Method 1: Android Client + Deno (No cookies needed)**
+**⚠️ Cookies Auto-Detection (Recommended)**
 
-For most public videos:
+**Always work in a directory with `cookies.txt` present** (e.g., `youtube-summaries/cookies.txt`). The commands below will automatically use it if available.
+
+**Method 1: Try without explicit --cookies flag first**
+
+For most videos (cookies.txt will be auto-detected if present):
 
 ```bash
 export PATH="/root/.deno/bin:$PATH"
@@ -83,7 +135,7 @@ yt-dlp --js-runtimes deno \
   "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
-**Method 2: Android Client + Cookies + Deno (Most powerful)**
+**Method 2: Explicit --cookies flag (when auto-detection fails)**
 
 For protected videos or when Method 1 fails:
 
@@ -105,12 +157,17 @@ yt-dlp --cookies cookies.txt \
 - `--extractor-args "youtube:player_client=android"`: Use Android client API to bypass desktop restrictions
 - `-f "worst"`: Download lowest resolution to minimize file size (typically 10-30 MB for 10-20 min videos)
 - `-o "%(id)s.%(ext)s"`: Output filename format (e.g., `lR7GaZYdsAg.mp4`)
-- `--cookies cookies.txt`: Use browser cookies for authentication (Method 2 only)
+- `--cookies cookies.txt`: Explicitly specify cookies file (usually auto-detected)
+
+**Cookies Behavior:**
+- **Auto-detection**: yt-dlp automatically looks for `cookies.txt` in the working directory
+- **Explicit flag**: Use `--cookies cookies.txt` only when auto-detection fails
+- **Recommended setup**: Keep `cookies.txt` in your working directory (e.g., `youtube-summaries/cookies.txt`)
 
 **When to use which method:**
 
-- **Method 1**: Try this first for public videos (no cookies needed)
-- **Method 2**: Use when Method 1 fails or video requires authentication
+- **Method 1**: Try this first (cookies auto-detected if present)
+- **Method 2**: Use explicit `--cookies` flag when Method 1 fails
 
 **Important**:
 - Deno is **always required** for YouTube downloads (JavaScript challenges)
@@ -377,23 +434,26 @@ Example:
 ## Complete Workflow Example
 
 ```bash
-# Set working directory
+# Set working directory (ensure cookies.txt is present here)
 cd /root/.openclaw/workspace/youtube-summaries
 
-# Try to download subtitles first
+# ⚠️ IMPORTANT: Ensure cookies.txt exists in this directory
+# yt-dlp will automatically detect and use it
+
+# Try to download subtitles first (cookies auto-detected)
 python3 ../skills/youtube-subtitle-summary/scripts/download_subtitle.py \
   "https://www.youtube.com/watch?v=VIDEO_ID" --lang zh --output .
 
 # If no subtitles, download video (always use Deno)
 export PATH="/root/.deno/bin:$PATH"
 
-# Method 1: Try without cookies first
+# Method 1: Try without explicit --cookies flag (auto-detection)
 yt-dlp --js-runtimes deno --remote-components ejs:github \
   --extractor-args "youtube:player_client=android" \
   -f "worst" \
   -o "%(id)s.%(ext)s" "https://www.youtube.com/watch?v=VIDEO_ID"
 
-# Method 2: If Method 1 fails, use cookies
+# Method 2: If Method 1 fails, use explicit --cookies flag
 yt-dlp --cookies cookies.txt --js-runtimes deno \
   --remote-components ejs:github \
   --extractor-args "youtube:player_client=android" \
@@ -403,8 +463,8 @@ yt-dlp --cookies cookies.txt --js-runtimes deno \
 # Extract audio
 python3 ../skills/youtube-subtitle-summary/scripts/extract_audio.py VIDEO_ID.mp4
 
-# Transcribe with Whisper (save API key to groq.txt first)
-echo "your-groq-api-key" > groq.txt
+# Transcribe with Whisper (groq.txt should be in working directory)
+# ⚠️ Ensure groq.txt exists with your API key
 python3 ../skills/youtube-subtitle-summary/scripts/transcribe_audio.py VIDEO_ID.mp3 --output transcript.txt
 
 # AI generates detailed summary with meaningful title
@@ -453,11 +513,58 @@ rm VIDEO_ID.mp4 VIDEO_ID.mp3 transcript.txt
 - **Prefer subtitles**: Subtitles are faster and more accurate than transcription
 - **Video quality**: Use `worst` format to download lowest resolution and keep audio files under 25MB
 - **Deno runtime**: Required for YouTube downloads, install once and add to PATH
+- **Cookies auto-detection**: Keep `cookies.txt` in working directory (e.g., `youtube-summaries/cookies.txt`), yt-dlp will auto-detect it
+- **Groq API key**: Keep `groq.txt` in working directory for automatic API key loading
 - **Long videos**: Consider splitting into segments for better processing
 - **API costs**: Groq Whisper API is free tier friendly but has rate limits
 - **Cleanup**: Always delete temporary files after summarization
 - **Meaningful titles**: Summary files should have descriptive titles that reflect video content
 - **Android client**: Use `player_client=android` parameter for better download compatibility
+
+## Required Files in Working Directory
+
+For smooth operation, ensure these files exist in your working directory (e.g., `/root/.openclaw/workspace/youtube-summaries/`):
+
+### 1. **`cookies.txt`** (required for most videos)
+   - Export from your browser using extensions like "Get cookies.txt LOCALLY"
+   - yt-dlp automatically detects and uses it
+   - Needed for age-restricted or sign-in required videos
+
+### 2. **`groq.txt`** (required for transcription)
+   - Contains your Groq API key (one line)
+   - Get API key from: https://console.groq.com/keys
+   - Automatically loaded by `transcribe_audio.py`
+
+### 🤖 For AI Assistants: Auto-Create Missing Files
+
+**If files don't exist, ask the user and create them immediately:**
+
+**Missing cookies.txt:**
+```bash
+# Ask user for cookies content, then create:
+cat > cookies.txt << 'EOF'
+[paste user's cookies here]
+EOF
+```
+
+**Missing groq.txt:**
+```bash
+# Ask user for Groq API key, then create:
+echo "user-provided-api-key" > groq.txt
+```
+
+**Prompts to use:**
+- For cookies: "请提供你的 YouTube cookies（使用浏览器扩展 'Get cookies.txt LOCALLY' 导出）"
+- For Groq key: "请提供你的 Groq API key（从 https://console.groq.com/keys 获取）"
+
+**Setup once, use forever:**
+```bash
+cd /root/.openclaw/workspace/youtube-summaries
+# Files will be auto-created when user provides content
+# Or manually add:
+# - cookies.txt (export from browser)
+# - groq.txt (API key from Groq console)
+```
 
 ## Output Files
 
