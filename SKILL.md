@@ -427,7 +427,7 @@ python3 ../skills/youtube-subtitle-summary/scripts/transcribe_audio.py VIDEO_ID.
 # AI generates detailed summary with meaningful title
 # ⚠️ CRITICAL: Save to descriptive filename (MANDATORY)
 # Format: summary_<video_id>_<descriptive_title>.md
-# Example: summary_lR7GaZYdsAg_新世界秩序的形成.md
+# Example: summary_lR7GaZYadg_天天吃喝玩乐.md
 # NOT: summary_lR7GaZYdsAg.md (too generic!)
 
 # Display summary to user
