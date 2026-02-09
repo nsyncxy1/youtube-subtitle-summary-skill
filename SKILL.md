@@ -239,51 +239,8 @@ python3 scripts/transcribe_audio.py audio.mp3 --output transcript.txt
 
 After obtaining transcript (from subtitles or Whisper), use AI to generate a **detailed summary** that restores the original video content.
 
-## Success Cases
 
-### Case 1: Public Video (Rick Astley - Never Gonna Give You Up)
-```bash
-# Video ID: dQw4w9WgXcQ
-# Method: Android client + Deno (no cookies)
-export PATH="/root/.deno/bin:$PATH"
-yt-dlp --js-runtimes deno --remote-components ejs:github \
-  --extractor-args "youtube:player_client=android" \
-  -f "worst" -o "%(id)s.%(ext)s" \
-  "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
-# Result: 11.28 MB video → 3.3 MB audio → 3.6 KB summary
-```
-
-### Case 2: Protected Video (沙县小吃探访)
-```bash
-# Video ID: FOSgHdeDAcw
-# Method: Cookies + Deno + Android client
-export PATH="/root/.deno/bin:$PATH"
-yt-dlp --cookies cookies.txt --js-runtimes deno \
-  --remote-components ejs:github \
-  --extractor-args "youtube:player_client=android" \
-  -f "worst" -o "%(id)s.%(ext)s" \
-  "https://www.youtube.com/watch?v=FOSgHdeDAcw"
-
-# Result: 18.19 MB video → 13.0 MB audio → 8.8 KB summary
-# Transcription: 4.0 seconds, 2,943 characters
-```
-
-### Case 3: Long Analysis Video (新世界秩序分析)
-```bash
-# Video ID: lR7GaZYdsAg
-# Method: Cookies + Deno + Android client
-export PATH="/root/.deno/bin:$PATH"
-yt-dlp --cookies cookies.txt --js-runtimes deno \
-  --remote-components ejs:github \
-  --extractor-args "youtube:player_client=android" \
-  -f "worst" -o "%(id)s.%(ext)s" \
-  "https://www.youtube.com/watch?v=lR7GaZYdsAg"
-
-# Result: 25.40 MB video → 22.9 MB audio → 15 KB summary
-# Transcription: 7.9 seconds, 7,929 characters
-# Duration: ~20 minutes
-```
 
 **Key Takeaways:**
 - **Deno is always required** for YouTube downloads (JavaScript challenges)
