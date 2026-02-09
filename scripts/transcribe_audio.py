@@ -27,14 +27,27 @@ def transcribe_audio(audio_file, output_file=None, api_key=None):
         print(f"❌ 音频文件不存在: {audio_file}")
         return None
     
-    # Get API key from argument or environment
+    # Get API key from argument, groq.txt file, or environment
     if not api_key:
-        api_key = os.environ.get('GROQ_API_KEY')
+        # Try to read from groq.txt in current directory
+        groq_file = os.path.join(os.getcwd(), 'groq.txt')
+        if os.path.exists(groq_file):
+            try:
+                with open(groq_file, 'r') as f:
+                    api_key = f.read().strip()
+                    print(f"✅ 从 groq.txt 读取 API key")
+            except Exception as e:
+                print(f"⚠️  读取 groq.txt 失败: {e}")
+        
+        # Fall back to environment variable
+        if not api_key:
+            api_key = os.environ.get('GROQ_API_KEY')
     
     if not api_key:
         print("❌ 未找到 Groq API Key")
-        print("   请设置环境变量: export GROQ_API_KEY='your-api-key'")
-        print("   或使用参数: --api-key YOUR_KEY")
+        print("   方法1: 在当前目录创建 groq.txt 文件并保存 API key")
+        print("   方法2: 设置环境变量: export GROQ_API_KEY='your-api-key'")
+        print("   方法3: 使用参数: --api-key YOUR_KEY")
         return None
     
     file_size = os.path.getsize(audio_file) / (1024 * 1024)

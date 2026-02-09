@@ -137,22 +137,46 @@ python3 scripts/extract_audio.py video.webm --output audio.mp3
 
 Use `transcribe_audio.py` with Groq Whisper API:
 
+**🤖 For AI Assistants:**
+When the user provides a Groq API key, automatically save it to `groq.txt` in the working directory:
 ```bash
+echo "user-provided-key" > groq.txt
+```
+
+**Manual Usage:**
+```bash
+# Method 1: Save API key to groq.txt (recommended)
+echo "your-groq-api-key" > groq.txt
+python3 scripts/transcribe_audio.py <audio_file> [--output OUTPUT_FILE]
+
+# Method 2: Use environment variable
 export GROQ_API_KEY='your-groq-api-key'
 python3 scripts/transcribe_audio.py <audio_file> [--output OUTPUT_FILE]
+
+# Method 3: Pass as parameter
+python3 scripts/transcribe_audio.py <audio_file> --api-key your-groq-api-key
 ```
 
 **Example:**
 ```bash
+# Save API key to groq.txt first
+echo "gsk_xxxxxxxxxxxxx" > groq.txt
+
+# Then transcribe
 python3 scripts/transcribe_audio.py audio.mp3 --output transcript.txt
 ```
 
 **Requirements:**
-- Groq API key (set via `GROQ_API_KEY` environment variable or `--api-key` parameter)
+- Groq API key (save to `groq.txt` file, or use `GROQ_API_KEY` environment variable, or `--api-key` parameter)
 - Audio file must be < 25 MB (Groq limit)
 - Supported formats: MP3, MP4, MPEG, MPGA, M4A, WAV, WEBM
 
 **Get Groq API Key**: https://console.groq.com/keys
+
+**API Key Priority:**
+1. `--api-key` parameter (highest priority)
+2. `groq.txt` file in current directory (recommended)
+3. `GROQ_API_KEY` environment variable (fallback)
 
 ### Step 3: Analyze and Summarize
 
@@ -379,8 +403,8 @@ yt-dlp --cookies cookies.txt --js-runtimes deno \
 # Extract audio
 python3 ../skills/youtube-subtitle-summary/scripts/extract_audio.py VIDEO_ID.mp4
 
-# Transcribe with Whisper
-export GROQ_API_KEY='your-api-key'
+# Transcribe with Whisper (save API key to groq.txt first)
+echo "your-groq-api-key" > groq.txt
 python3 ../skills/youtube-subtitle-summary/scripts/transcribe_audio.py VIDEO_ID.mp3 --output transcript.txt
 
 # AI generates detailed summary with meaningful title
